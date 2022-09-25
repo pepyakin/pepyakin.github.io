@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>wasm on Terminal</title>
+    <link>/tags/wasm/</link>
+    <description>Recent content in wasm on Terminal</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 01 Sep 2022 16:00:00 +0000</lastBuildDate><atom:link href="/tags/wasm/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Why Wasm is not the best format for Fraud Proofs</title>
+      <link>/posts/wasm-fraud-proofs/</link>
+      <pubDate>Thu, 01 Sep 2022 16:00:00 +0000</pubDate>
+      
+      <guid>/posts/wasm-fraud-proofs/</guid>
+      <description>I work at Parity on various stuff. I can highlight WebAssembly and Parachains. One of the products it has is a blockchain framework called Substrate. In a nutshell, the chain developer provides a WebAssembly blob that controls the blockchain&amp;rsquo;s various aspects (such as validating transactions), and the rest is handled by Substrate. Right now, Substrate can be used to build a standalone chain, or it can be used to make a parachain (or, in the future, a pay-as-you-go version, a parathread).</description>
+      <content>&lt;p&gt;I work at Parity on various stuff. I can highlight WebAssembly and Parachains. One of the products it has is a blockchain framework called Substrate. In a nutshell, the chain developer provides a WebAssembly blob that controls the blockchain&amp;rsquo;s various aspects (such as validating transactions), and the rest is handled by Substrate. Right now, Substrate can be used to build a standalone chain, or it can be used to make a parachain (or, in the future, a pay-as-you-go version, a parathread).&lt;/p&gt;
+&lt;p&gt;Since we delivered parachains, it was time for me to look around. I&amp;rsquo;ve been following rollup tech with interest. Naturally, that led me to play with the idea of adding another way of using Substrate: to create an optimistic rollup and allow anchoring the chain to a data-availability layer — one of the existing parachains, a dedicated DA parachain, Celestia or Ethereum.&lt;/p&gt;
+&lt;p&gt;The crucial component to enable this is a fraud-proof protocol.&lt;/p&gt;
+&lt;p&gt;After playing with it, I concluded that &lt;strong&gt;Wasm is not a good fit for fraud proofs&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Before diving in, let&amp;rsquo;s establish a common understanding of fraud proofs.&lt;/p&gt;
+&lt;h2 id=&#34;fraud-proofs&#34;&gt;Fraud Proofs&lt;/h2&gt;
+&lt;p&gt;There are two roles: claimer and challenger. The claimer performs some computation that takes some inputs and publishes the output. The challenger can initiate a challenge that disputes that claim if they think it is wrong.&lt;/p&gt;
+&lt;p&gt;I know of two kinds of fraud-proof protocols: one-round fraud proofs and interactive fraud proofs (&lt;strong&gt;IFP&lt;/strong&gt;). I will focus only on IFP here since I believe it is superior to one-round in the context of rollups&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+&lt;p&gt;IFP requires the claimer and the challenger to divide the computation into steps. The computation state at each step can be described as a short commitment. Typically, meaning that the VM state should be merkelized&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;. The commitment encompasses the output of the VM. The claim contains the commitment to the final step of the computation. The challenge will have its version of the hash. If the final step between the claim and challenge are equal, then the outputs must be identical, which means such a challenge is invalid. The first step commitment of the computation is implicitly known.&lt;/p&gt;
+&lt;p&gt;Then the claimer and the challenger divide the computation in half and compare the VM state commitments. If they are the same, then the discrepancy must have happened on the right half; otherwise, on the left. They keep reducing computation until a single step is left. The claimer and challenger agree on the starting state (pre-state) but disagree on the state after the step (post-state).&lt;/p&gt;
+&lt;p&gt;The challenge is resolved by re-executing this single step. Typically, such a step would be some kind of instruction. For example, the instruction &lt;code&gt;r0 = r1 + r2&lt;/code&gt; would take the registers &lt;code&gt;r1&lt;/code&gt; and &lt;code&gt;r2&lt;/code&gt; values, add them and save the result into &lt;code&gt;r0&lt;/code&gt;. Using the pre-state commitment, one can get the values of the &lt;code&gt;r1&lt;/code&gt; and &lt;code&gt;r2&lt;/code&gt;. Computing the state commitment after updating &lt;code&gt;r0&lt;/code&gt; gives the post-state.&lt;/p&gt;
+&lt;p&gt;If the challenger turns out to be right, the original claim is reverted. The loser has to suffer a fine. If a party decides not to participate, they automatically lose. If the claim goes unchallenged for a certain amount of time, that claim is assumed to be correct and final. The whole protocol is typically implemented as an on-chain smart contract.&lt;/p&gt;
+&lt;p&gt;Now, with that out of the way, I want to argue that WebAssembly is not a good fit for implementing IFP.&lt;/p&gt;
+&lt;h2 id=&#34;wasm&#34;&gt;Wasm&lt;/h2&gt;
+&lt;p&gt;Let&amp;rsquo;s walk through different corners of WebAssembly that, in my opinion, make IFP hard.&lt;/p&gt;
+&lt;h3 id=&#34;control-flow&#34;&gt;Control Flow&lt;/h3&gt;
+&lt;p&gt;One notorious effect is that Wasm expresses control flow via constructions not too dissimilar to &lt;code&gt;if&lt;/code&gt;-s, &lt;code&gt;while&lt;/code&gt;-s, and &lt;code&gt;switch&lt;/code&gt;-es found in your favorite high-level language. Consider the following code:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-wasm&#34; data-lang=&#34;wasm&#34;&gt;local.get $x
+if
+    call $a
+else
+    call $b
+end
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;That is an actual wasm code. Each instruction occupies a line.&lt;/p&gt;
+&lt;p&gt;As you might expect, if the variable &lt;code&gt;x&lt;/code&gt; is non-zero, the control flows into the &lt;code&gt;then&lt;/code&gt; block and calls the function &lt;code&gt;$a&lt;/code&gt;. Otherwise, the control flows into the &lt;code&gt;else&lt;/code&gt; block and calls the function &lt;code&gt;$b&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;When interpreting the &lt;code&gt;if&lt;/code&gt; instruction, the offset of the &lt;code&gt;else&lt;/code&gt; marker instruction should be known. Likewise, the same is true for &lt;code&gt;else&lt;/code&gt; and &lt;code&gt;end&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;In the context of IFP, the on-chain verifier should get those offsets from somewhere. It will become clear later why this is a problem, but ultimately it has to do with unnecessary complexity.&lt;/p&gt;
+&lt;h3 id=&#34;typedness&#34;&gt;Typedness&lt;/h3&gt;
+&lt;p&gt;WebAssembly is strongly typed. There are at least 4 types: i32, i64, f32, f64, and some other types were added by extensions like v128 or reference-like values. Before execution, the code is validated, including checking the types. It&amp;rsquo;s a nice property that comes in handy when compiling Wasm, but it&amp;rsquo;s not entirely necessary for runtime execution (e.g., i64 can subsume i32 operations). Frankly, i32 should be enough for everyone.&lt;/p&gt;
+&lt;p&gt;However, there are some dark corners of the wasm standard. E.g. statically unreachable code is a subject for a weird type-checking semantics (see e.g. &lt;a href=&#34;https://binji.github.io/posts/webassembly-type-checking/&#34;&gt;this&lt;/a&gt; or &lt;a href=&#34;https://webassembly.github.io/spec/core/appendix/algorithm.html&#34;&gt;this&lt;/a&gt;). While unreachable code is never executed, the verifier has to deal with the possibility of encountering this code. That complicates the implementation.&lt;/p&gt;
+&lt;h3 id=&#34;complex-instruction-set&#34;&gt;Complex Instruction Set&lt;/h3&gt;
+&lt;p&gt;WebAssembly provides some high-level-ish instructions. Take for example &lt;a href=&#34;https://webassembly.github.io/spec/core/exec/instructions.html#exec-call-indirect&#34;&gt;&lt;code&gt;call_indirect&lt;/code&gt;&lt;/a&gt; instruction. It:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;takes an index of the function to call passed as an operand,&lt;/li&gt;
+&lt;li&gt;loads the corresponding entry from the table specified as an index via an immediate,&lt;/li&gt;
+&lt;li&gt;traps if the load is out-of-bounds,&lt;/li&gt;
+&lt;li&gt;traps if the value is null,&lt;/li&gt;
+&lt;li&gt;loads the signature of the function,&lt;/li&gt;
+&lt;li&gt;checks it with the signature specified by the immediate,&lt;/li&gt;
+&lt;li&gt;and only then performs call (which by itself is &lt;a href=&#34;https://webassembly.github.io/spec/core/exec/instructions.html#exec-invoke&#34;&gt;not simple&lt;/a&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Some instructions can perform an arbitrary amount of work. For example, &lt;code&gt;memory.fill&lt;/code&gt;, a sibling of &lt;code&gt;memset&lt;/code&gt;, stores the given value in the given memory range. The range is passed as input to the instruction and can be arbitrarily large. This problem can be solved by limiting the range in some way (like by instrumentation or by a simple promise if the code is trusted) or perhaps just banning the use of those instructions (they are for performance anyway and for proofing that does not matter).&lt;/p&gt;
+&lt;h3 id=&#34;vm-state&#34;&gt;VM State&lt;/h3&gt;
+&lt;p&gt;The logical state of wasm computation is rather diverse. To name a few: memories contents and attributes, tables&lt;sup id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; contents and attributes, various stacks, global variables, etc.&lt;/p&gt;
+&lt;p&gt;As discussed above, instructions will need to be provided with a subset of the VM state. That means that either the whole state is collapsed into a homogeneous tree which is queried with some kind of key-value scheme (simpler, less efficient), or each of those subsets of the state is represented by their own data structures (more efficient, complex).&lt;/p&gt;
+&lt;p&gt;There are also some small annoying things. One of them is the program counter. A Wasm module consists of a bunch of functions. A &lt;code&gt;call&lt;/code&gt; instruction does not specify the code offset. Rather, it specifies the function index. The logic verifying the effects of the &lt;code&gt;call&lt;/code&gt; instruction must check that the program counter was set to the beginning of a given function.&lt;/p&gt;
+&lt;h3 id=&#34;it-can-be-simpler&#34;&gt;It can be simpler&lt;/h3&gt;
+&lt;p&gt;Those problems are not insurmountable.&lt;/p&gt;
+&lt;p&gt;One mitigation strategy is to analyze the wasm module and collate side tables. The on-chain verifier would refer to those to see where the &lt;code&gt;else&lt;/code&gt; of the corresponding &lt;code&gt;if&lt;/code&gt; instruction is. You will still have to deal with the complex state and other complexities.&lt;/p&gt;
+&lt;p&gt;A better approach seems to be to transform Wasm into a more proof-friendly VM. All wasm functions can be flattened into a single code blob. Unreachable code could be removed. Stacks could be merged into a single one. Any complex instructions could be replaced with a bunch of simpler instructions. Floating point types could be dropped.&lt;/p&gt;
+&lt;p&gt;Ideally, we end up with a super simple VM with a minimum number of instructions that operate on a minimum amount of state, and the state is as uniform as possible.&lt;/p&gt;
+&lt;p&gt;The caveat is that there must now be a compiler from WebAssembly to such a format. Also, the VM is implemented twice: once for the off-chain prover and once for the on-chain verifier. In the end, it feels that the system is almost as complex as before, the complexity is mostly shifted.&lt;/p&gt;
+&lt;p&gt;What if there was a simpler alternative? Why can&amp;rsquo;t we compile the program into a simpler ISA in the first place?&lt;/p&gt;
+&lt;h2 id=&#34;alternative&#34;&gt;Alternative&lt;/h2&gt;
+&lt;p&gt;Now, compare that to RISC ISAs like RISC-V or MIPS. Those instruction sets are extremely simple and can be implemented directly in hardware. That turns out to be really handy for IFPs as well: each state transition of a VM based on those ISAs performs a limited amount of work and operates on a limited amount of data.&lt;/p&gt;
+&lt;p&gt;Since the binary is not a sophisticated format, initialization is way simpler: just copy the program into the memory.&lt;/p&gt;
+&lt;p&gt;Or take, for example, a branch instruction. It takes the destination address, and its semantics can be described as:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;br r0 =&amp;gt; pc = r0
+# where PC is the register containing the next execution&amp;#39;s address.
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The whole RV32IM has 48 instructions, and MIPS is around 40.&lt;/p&gt;
+&lt;p&gt;The state of a VM is basically: memory and registers. Registers can be mapped onto memory. Assuming no unaligned loads are used, the memory can be divided into words. That simplifies the proving mechanism quite a bit.&lt;/p&gt;
+&lt;h2 id=&#34;discussion&#34;&gt;Discussion&lt;/h2&gt;
+&lt;p&gt;Wasm provides you with things you don&amp;rsquo;t need, but they will cost you.&lt;/p&gt;
+&lt;p&gt;For me, the main selling point of Wasm is that it allows you to compile into machine code that can be safely sandboxed relatively simply. To achieve that, Wasm requires validation to establish invariants. Instead of simple gotos, it uses structured control flow. Several flavors of stacks and the existence of the concept of tables are all consequences of that. Those features may be important for some use cases. However, for IFP, those are just unnecessary. IFP can get away with interpretation just fine&lt;sup id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;4&lt;/a&gt;&lt;/sup&gt;. Using Wasm for IFP requires you to unwind all of that. Why not start with a simpler model, to begin with?&lt;/p&gt;
+&lt;p&gt;While Wasm is excellent for specific use cases, IFP is not one of them. A RISC-based VM seems to be a better choice for IFP, hands down.&lt;/p&gt;
+&lt;p&gt;Feel free to leave a &lt;a href=&#34;https://twitter.com/pepyakin/status/1565378422205030400&#34;&gt;comment&lt;/a&gt;.&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;One might say that in Polkadot, we use one-round fraud proofs. They are used in an off-chain setting.&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;
+&lt;p&gt;That is, a Merkle tree is created out of values of every memory cell, register, and every other piece of data required to describe the complete VM state. The critical feature of Merkle trees is that they allow the creation of a proof of inclusion. The proof convinces somebody who possesses the commitment for that tree that the tree has a specific value at a particular place. Such proof is compact, way less than presenting the whole tree itself.&amp;#160;&lt;a href=&#34;#fnref:2&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;
+&lt;p&gt;if a memory can be seen as an array of bytes, then a table is an array of references. Often it&amp;rsquo;s used for placing function pointers there.&amp;#160;&lt;a href=&#34;#fnref:3&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:4&#34;&gt;
+&lt;p&gt;In the optimistic case, it&amp;rsquo;s not necessary to use the VM for proving. The equvalent program compiled to native code could be executed instead, so there is no effect on the scalability.&amp;#160;&lt;a href=&#34;#fnref:4&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>
