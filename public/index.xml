@@ -32,7 +32,7 @@ parachain, one has to provide a PVF and the initial state of the chain (genesis)
 state of each parachain since that would be prohibitively expensive and defy the purpose of sharding.
 Therefore, PVFs only occupy a very limited state on the relay chain, something in the range of kilobytes. Typically, only the current parachain block header is stored there. That means that in order to execute a set of transactions, the values accessed on the course of execution of those transactions with the
 corresponding merkle proofs must be provided to the PVF. We call the combination of the transactions
-and the merkle proofs a proof-of-validity (&lt;strong&gt;POV&lt;/strong&gt;).&lt;/p&gt;
+and the merkle proofs a proof-of-validity (&lt;strong&gt;PoV&lt;/strong&gt;).&lt;/p&gt;
 
 
 
@@ -130,7 +130,7 @@ and the merkle proofs a proof-of-validity (&lt;strong&gt;POV&lt;/strong&gt;).&lt
 &lt;text text-anchor=&#39;middle&#39; x=&#39;56&#39; y=&#39;100&#39; fill=&#39;currentColor&#39; style=&#39;font-size:1em&#39;&gt;n&lt;/text&gt;
 &lt;text text-anchor=&#39;middle&#39; x=&#39;56&#39; y=&#39;132&#39; fill=&#39;currentColor&#39; style=&#39;font-size:1em&#39;&gt;t&lt;/text&gt;
 &lt;text text-anchor=&#39;middle&#39; x=&#39;56&#39; y=&#39;164&#39; fill=&#39;currentColor&#39; style=&#39;font-size:1em&#39;&gt;e&lt;/text&gt;
-&lt;text text-anchor=&#39;middle&#39; x=&#39;56&#39; y=&#39;228&#39; fill=&#39;currentColor&#39; style=&#39;font-size:1em&#39;&gt;O&lt;/text&gt;
+&lt;text text-anchor=&#39;middle&#39; x=&#39;56&#39; y=&#39;228&#39; fill=&#39;currentColor&#39; style=&#39;font-size:1em&#39;&gt;o&lt;/text&gt;
 &lt;text text-anchor=&#39;middle&#39; x=&#39;56&#39; y=&#39;244&#39; fill=&#39;currentColor&#39; style=&#39;font-size:1em&#39;&gt;=&lt;/text&gt;
 &lt;text text-anchor=&#39;middle&#39; x=&#39;56&#39; y=&#39;308&#39; fill=&#39;currentColor&#39; style=&#39;font-size:1em&#39;&gt;s&lt;/text&gt;
 &lt;text text-anchor=&#39;middle&#39; x=&#39;56&#39; y=&#39;340&#39; fill=&#39;currentColor&#39; style=&#39;font-size:1em&#39;&gt;l&lt;/text&gt;
@@ -283,16 +283,16 @@ and the merkle proofs a proof-of-validity (&lt;strong&gt;POV&lt;/strong&gt;).&lt
   
 &lt;/div&gt;
 &lt;p&gt;Note that I said typically. That is because Polkadot does not impose any restrictions on how the
-state nor POV is represented. In fact, those are opaque blobs to validators, and PVF is free to
+state nor PoV is represented. In fact, those are opaque blobs to validators, and PVF is free to
 interpret them in any way it wants.&lt;/p&gt;
-&lt;p&gt;Example: a ZK parachain. The state stores the current state root, the POV stores the transaction
+&lt;p&gt;Example: a ZK parachain. The state stores the current state root, the PoV stores the transaction
 list, the ZK proof, and the new state root. The PVF just verifies the ZK proof and
 updates the state root.&lt;/p&gt;
 &lt;p&gt;Another rather extreme example: a parachain storing only a counter in the state. The PVF just
-increments the counter by the value given in the POV. No merkle trie is used.&lt;/p&gt;
-&lt;p&gt;The size of the state part is limited to several kilobytes. The size of the POV is currently limited
+increments the counter by the value given in the PoV. No merkle trie is used.&lt;/p&gt;
+&lt;p&gt;The size of the state part is limited to several kilobytes. The size of the PoV is currently limited
 by around 4 MiB&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; and is planned to be increased to 16 MiB in the future. As long as you can fit
-your state and POV into those limits and represent your state transition function as a WebAssembly
+your state and PoV into those limits and represent your state transition function as a WebAssembly
 module, you can deploy a parachain on Polkadot.&lt;/p&gt;
 &lt;h3 id=&#34;consensus&#34;&gt;Consensus&lt;/h3&gt;
 &lt;p&gt;The Polkadot relay chain has 1000&lt;sup id=&#34;fnref1:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; validators. However, only
@@ -300,9 +300,8 @@ module, you can deploy a parachain on Polkadot.&lt;/p&gt;
 active validator set. This set changes approximately every 4&lt;sup id=&#34;fnref3:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; hours.&lt;/p&gt;
 &lt;p&gt;Validators from the active validator list can extend the relay chain with new blocks. A validator
 is selected utilizing a VRF&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;. Simply speaking, the validators roll a dice, and one (or more) lucky
-validator is chosen to create a new block. The mechanism is called BABE. You can read &lt;a href=&#34;https://polkadot.network/blog/polkadot-consensus-part-3-babe/&#34;&gt;here&lt;/a&gt;
-for more details.&lt;/p&gt;
-&lt;p&gt;The finalization of the relay chain blocks is done by GRANDPA. Again without diving into details, in GRANDPA, the validators from the active validator set are voting on the head of the chain they
+validator is chosen to create a new block. The mechanism is called &lt;a href=&#34;https://polkadot.network/blog/polkadot-consensus-part-3-babe/&#34;&gt;BABE&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The finalization of the relay chain blocks is done by &lt;a href=&#34;https://polkadot.network/blog/polkadot-consensus-part-2-grandpa/&#34;&gt;GRANDPA&lt;/a&gt;. Again without diving into details, in GRANDPA, the validators from the active validator set are voting on the head of the chain they
 believe to be the best. The finalization is achieved when a supermajority of validators vote for
 the chain&lt;sup id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
 &lt;p&gt;Validators from the active validator set are also responsible for attesting parachain candidates in a process called &lt;strong&gt;backing&lt;/strong&gt;. The active validator set is split into groups of 5 validators&lt;sup id=&#34;fnref4:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;. Each group is
@@ -509,16 +508,16 @@ responsible for validating a particular parachain. The groups&amp;rsquo; assignm
 &lt;p&gt;In the figure above, the validators are represented with numbers. The validators 7-9 are inactive
 and do not participate in the consensus actively, at least not in the current session. 1-6 are active.
 1-2, 3-4, and 5-6 make up the backing groups 1, 2, and 3, respectively.&lt;/p&gt;
-&lt;p&gt;To advance the state of a parachain, a POV is required. In reality, the validators also need a piece
+&lt;p&gt;To advance the state of a parachain, a PoV is required. In reality, the validators also need a piece
 of data that sums up the state transition. Let&amp;rsquo;s call that piece of data a receipt and the combination
-of the receipt and the POV a parachain &lt;strong&gt;candidate&lt;/strong&gt;.&lt;/p&gt;
+of the receipt and the PoV a parachain &lt;strong&gt;candidate&lt;/strong&gt;.&lt;/p&gt;
 &lt;p&gt;Validators do not create candidates but only attest to them. It&amp;rsquo;s the job of nodes that are not a part
 of the parachain consensus to create candidates. Those nodes are called &lt;strong&gt;collators&lt;/strong&gt;. Typically,
 those are full nodes on the parachain network. They collect transactions, create a parachain block
 and a corresponding candidate, then submit it to the validators. If you are familiar with rollups,
 you can think of collators similar to sequencers.&lt;/p&gt;
 &lt;p&gt;Once created, a candidate is sent to a validator in the appropriate backing group. The validator runs the PVF
-with the given POV and the current state found on the relay chain. If the candidate turns out to be
+with the given PoV and the current state found on the relay chain. If the candidate turns out to be
 valid, the validator circulates the candidate to other validators in the backing group. Once validators check the candidate, they issue a backing statement. Those backing statements are gossiped to all
 the validators in the active set.&lt;/p&gt;
 &lt;p&gt;When it&amp;rsquo;s time to create the next relay chain block, the block author would include the candidates
@@ -526,9 +525,9 @@ that have received enough backing statements into the new block. It&amp;rsquo;s 
 receipt part of the candidate is included on the relay chain. At this point, only the backing
 group possesses the full PoV.&lt;/p&gt;
 &lt;p&gt;The next step is ensuring &lt;strong&gt;availability&lt;/strong&gt;. Sending and storing whole PoVs is prohibitively expensive.
-So POVs are split into chunks and distributed among validators. So Polkadot leverages erasure coding
-to split the POV into chunks, and a large subset of chunks can recover the original POV. Each validator
-stores only one chunk for a particular POV. The protocol works as follows. If a validator from the active set notices
+So PoVs are split into chunks and distributed among validators. So Polkadot leverages erasure coding
+to split the PoV into chunks, and a large subset of chunks can recover the original PoV. Each validator
+stores only one chunk for a particular PoV. The protocol works as follows. If a validator from the active set notices
 a candidate included in the relay chain, it requests the chunk from the validators that backed that
 candidate. Once the chunk reaches the validator, it signs and gossips a statement within the active
 validator set. The next relay chain block author includes all the signed statements into the block.
@@ -567,6 +566,7 @@ attempt to misbehave is caught. While the backing and approval mechanisms work w
 &lt;li&gt;All validators fetch the chunks of the candidate&amp;rsquo;s PoV and broadcast a signed statement confirming possession of the chunk. The statements are included in the relay chain block.&lt;/li&gt;
 &lt;li&gt;The approval process is run and the relay chain block is now ready for finalization.&lt;/li&gt;
 &lt;/ol&gt;
+&lt;p&gt;At this point, the parachain can treat that block as finalized.&lt;/p&gt;
 &lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
 &lt;p&gt;I hope I provided a good overview of the Polkadot consensus and how parachains work. See the &lt;a href=&#34;https://polkadot.network/blog/polkadot-v1-0-sharding-and-economic-security/&#34;&gt;Polkadot v1.0 blog post&lt;/a&gt;. Also &lt;a href=&#34;https://paritytech.github.io/polkadot/book/&#34;&gt;Polkadot Book&lt;/a&gt; is also worth a look.&lt;/p&gt;
 &lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
