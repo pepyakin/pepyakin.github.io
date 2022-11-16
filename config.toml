@@ -63,7 +63,7 @@ paginate = 5
 [languages]
   [languages.en]
     languageName = "English"
-    title = "Terminal"
+    title = "pepyakin"
     subtitle = "A simple, retro theme for Hugo"
     owner = ""
     keywords = ""
