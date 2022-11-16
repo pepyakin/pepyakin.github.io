@@ -6,7 +6,7 @@ authorTwitter = "pepyakin" #do not include @
 tags = ["wasm", "fraud proofs", "rollups"]
 cover = ""
 showFullContent = false
-readingTime = false
+readingTime = true
 hideComments = false
 +++
 
