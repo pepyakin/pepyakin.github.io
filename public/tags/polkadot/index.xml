@@ -14,12 +14,12 @@
       
       <guid>/posts/parachains-consensus/</guid>
       <description>This post will briefly explain how Polkadot Consensus enables Parachain validation.
-Polkadot is a sharded blockchain. It is composed of parachains and the relay chain. The relay chain is the main chain, and parachains can be considered shards. Unlike typical sharded chains in Polkadot, shards are entirely programmable.
+Polkadot is a sharded blockchain. It is composed of parachains and the relay chain. The relay chain is the main chain, and parachains can be considered shards. Unlike typical sharded chains, in Polkadot shards are entirely programmable.
 Here I want to focus on the consensus part of the story.
 Logical View of a Parachain Just like any blockchain, parachain is defined by a state transition function.</description>
       <content>&lt;p&gt;This post will briefly explain how Polkadot Consensus enables Parachain validation.&lt;/p&gt;
 &lt;p&gt;Polkadot is a sharded blockchain. It is composed of parachains and the relay chain. The relay chain is the
-main chain, and parachains can be considered shards. Unlike typical sharded chains in Polkadot, shards are entirely programmable.&lt;/p&gt;
+main chain, and parachains can be considered shards. Unlike typical sharded chains, in Polkadot shards are entirely programmable.&lt;/p&gt;
 &lt;p&gt;Here I want to focus on the consensus part of the story.&lt;/p&gt;
 &lt;h2 id=&#34;logical-view-of-a-parachain&#34;&gt;Logical View of a Parachain&lt;/h2&gt;
 &lt;p&gt;Just like any blockchain, parachain is defined by a state transition function. The state transition

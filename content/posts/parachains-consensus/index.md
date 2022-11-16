@@ -14,7 +14,7 @@ hideComments = false
 This post will briefly explain how Polkadot Consensus enables Parachain validation.
 
 Polkadot is a sharded blockchain. It is composed of parachains and the relay chain. The relay chain is the
-main chain, and parachains can be considered shards. Unlike typical sharded chains in Polkadot, shards are entirely programmable.
+main chain, and parachains can be considered shards. Unlike typical sharded chains, in Polkadot shards are entirely programmable.
 
 Here I want to focus on the consensus part of the story.
 
