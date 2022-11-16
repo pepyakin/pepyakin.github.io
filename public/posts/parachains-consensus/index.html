@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Parachains Consensus Explainer :: Terminal</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Brief explaination of how Polkadot sharded consensus works." />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="/posts/parachains-consensus/" />
+
+
+
+
+<link rel="stylesheet" href="/assets/style.css">
+
+  <link rel="stylesheet" href="/assets/red.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="/img/favicon/red.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="pepyakin" />
+  
+    <meta name="twitter:creator" content="pepyakin" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Parachains Consensus Explainer">
+<meta property="og:description" content="Brief explaination of how Polkadot sharded consensus works." />
+<meta property="og:url" content="/posts/parachains-consensus/" />
+<meta property="og:site_name" content="Terminal" />
+
+  <meta property="og:image" content="/">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-11-07 14:11:26 &#43;0100 CET" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="red">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    pepyakin
+  </div>
+</a>
+
+    </div>
+    
+  </div>
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="/posts/parachains-consensus/">Parachains Consensus Explainer</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-11-07
+        
+          [Updated: 2022-11-07]
+        
+      </span>
+    
+    
+      <span class="post-author">:: pepyakin</span>
+    
+    
+      <span class="post-reading-time">:: 9 min read (1908 words)</span>
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="/tags/polkadot/">polkadot</a>&nbsp;
+    
+  </span>
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <p>This post will briefly explain how Polkadot Consensus enables Parachain validation.</p>
+<p>Polkadot is a sharded blockchain. It is composed of parachains and the relay chain. The relay chain is the
+main chain, and parachains can be considered shards. Unlike typical sharded chains in Polkadot, shards are entirely programmable.</p>
+<p>Here I want to focus on the consensus part of the story.</p>
+<h2 id="logical-view-of-a-parachain">Logical View of a Parachain<a href="#logical-view-of-a-parachain" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Just like any blockchain, parachain is defined by a state transition function. The state transition
+function specifies how the state of the chain changes after applying a given set of transactions. We
+refer to such a function as a parachain validation function (<strong>PVF</strong>).</p>
+<p>PVF is represented as a WebAssembly module. On a high level, PVF takes the current state of the
+parachain, a set of transactions, and produces a new state of the parachain. In order to deploy a
+parachain, one has to provide a PVF and the initial state of the chain (genesis).</p>
+<p>PVFs are executed by Polkadot validators. As usual with sharding, validators do not store the
+state of each parachain since that would be prohibitively expensive and defy the purpose of sharding.
+Therefore, PVFs only occupy a very limited state on the relay chain, something in the range of kilobytes. Typically, only the current parachain block header is stored there. That means that in order to execute a set of transactions, the values accessed on the course of execution of those transactions with the
+corresponding merkle proofs must be provided to the PVF. We call the combination of the transactions
+and the merkle proofs a proof-of-validity (<strong>POV</strong>).</p>
+
+
+
+<div class="goat svg-container ">
+  
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      font-family="Menlo,Lucida Console,monospace"
+      
+        viewBox="0 0 696 409"
+      >
+      <g transform='translate(8,16)'>
+<path d='M 0,0 L 136,0' fill='none' stroke='currentColor'></path>
+<path d='M 16,80 L 120,80' fill='none' stroke='currentColor'></path>
+<path d='M 136,96 L 216,96' fill='none' stroke='currentColor'></path>
+<path d='M 520,96 L 680,96' fill='none' stroke='currentColor'></path>
+<path d='M 16,112 L 120,112' fill='none' stroke='currentColor'></path>
+<path d='M 16,144 L 120,144' fill='none' stroke='currentColor'></path>
+<path d='M 280,160 L 416,160' fill='none' stroke='currentColor'></path>
+<path d='M 0,176 L 136,176' fill='none' stroke='currentColor'></path>
+<path d='M 232,176 L 272,176' fill='none' stroke='currentColor'></path>
+<path d='M 536,176 L 664,176' fill='none' stroke='currentColor'></path>
+<path d='M 416,192 L 512,192' fill='none' stroke='currentColor'></path>
+<path d='M 0,208 L 136,208' fill='none' stroke='currentColor'></path>
+<path d='M 232,208 L 272,208' fill='none' stroke='currentColor'></path>
+<path d='M 536,208 L 664,208' fill='none' stroke='currentColor'></path>
+<path d='M 280,224 L 416,224' fill='none' stroke='currentColor'></path>
+<path d='M 536,240 L 664,240' fill='none' stroke='currentColor'></path>
+<path d='M 520,272 L 680,272' fill='none' stroke='currentColor'></path>
+<path d='M 16,288 L 120,288' fill='none' stroke='currentColor'></path>
+<path d='M 136,304 L 216,304' fill='none' stroke='currentColor'></path>
+<path d='M 16,320 L 120,320' fill='none' stroke='currentColor'></path>
+<path d='M 16,352 L 120,352' fill='none' stroke='currentColor'></path>
+<path d='M 0,384 L 136,384' fill='none' stroke='currentColor'></path>
+<path d='M 0,0 L 0,176' fill='none' stroke='currentColor'></path>
+<path d='M 0,208 L 0,384' fill='none' stroke='currentColor'></path>
+<path d='M 136,0 L 136,96' fill='none' stroke='currentColor'></path>
+<path d='M 136,96 L 136,176' fill='none' stroke='currentColor'></path>
+<path d='M 136,208 L 136,304' fill='none' stroke='currentColor'></path>
+<path d='M 136,304 L 136,384' fill='none' stroke='currentColor'></path>
+<path d='M 232,112 L 232,176' fill='none' stroke='currentColor'></path>
+<path d='M 232,208 L 232,288' fill='none' stroke='currentColor'></path>
+<path d='M 280,160 L 280,224' fill='none' stroke='currentColor'></path>
+<path d='M 416,160 L 416,192' fill='none' stroke='currentColor'></path>
+<path d='M 416,192 L 416,224' fill='none' stroke='currentColor'></path>
+<path d='M 520,96 L 520,128' fill='none' stroke='currentColor'></path>
+<path d='M 520,128 L 520,272' fill='none' stroke='currentColor'></path>
+<path d='M 680,96 L 680,128' fill='none' stroke='currentColor'></path>
+<path d='M 680,128 L 680,272' fill='none' stroke='currentColor'></path>
+<polygon points='280.000000,176.000000 268.000000,170.399994 268.000000,181.600006' fill='currentColor' transform='rotate(0.000000, 272.000000, 176.000000)'></polygon>
+<polygon points='280.000000,208.000000 268.000000,202.399994 268.000000,213.600006' fill='currentColor' transform='rotate(0.000000, 272.000000, 208.000000)'></polygon>
+<polygon points='520.000000,192.000000 508.000000,186.399994 508.000000,197.600006' fill='currentColor' transform='rotate(0.000000, 512.000000, 192.000000)'></polygon>
+<path d='M 216,96 A 16,16 0 0,1 232,112' fill='none' stroke='currentColor'></path>
+<path d='M 232,288 A 16,16 0 0,1 216,304' fill='none' stroke='currentColor'></path>
+<text text-anchor='middle' x='8' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='8' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='16' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='16' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='24' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='24' y='68' fill='currentColor' style='font-size:1em'>b</text>
+<text text-anchor='middle' x='24' y='100' fill='currentColor' style='font-size:1em'>p</text>
+<text text-anchor='middle' x='24' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='24' y='308' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='24' y='340' fill='currentColor' style='font-size:1em'>m</text>
+<text text-anchor='middle' x='32' y='20' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='32' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='32' y='68' fill='currentColor' style='font-size:1em'>l</text>
+<text text-anchor='middle' x='32' y='100' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='32' y='132' fill='currentColor' style='font-size:1em'>s</text>
+<text text-anchor='middle' x='32' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='32' y='276' fill='currentColor' style='font-size:1em'>n</text>
+<text text-anchor='middle' x='32' y='308' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='32' y='340' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='40' y='20' fill='currentColor' style='font-size:1em'>l</text>
+<text text-anchor='middle' x='40' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='40' y='68' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='40' y='100' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='40' y='132' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='40' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='40' y='276' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='40' y='308' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='40' y='340' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='48' y='20' fill='currentColor' style='font-size:1em'>d</text>
+<text text-anchor='middle' x='48' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='48' y='68' fill='currentColor' style='font-size:1em'>c</text>
+<text text-anchor='middle' x='48' y='100' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='48' y='132' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='48' y='228' fill='currentColor' style='font-size:1em'>P</text>
+<text text-anchor='middle' x='48' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='48' y='276' fill='currentColor' style='font-size:1em'>w</text>
+<text text-anchor='middle' x='48' y='308' fill='currentColor' style='font-size:1em'>n</text>
+<text text-anchor='middle' x='48' y='340' fill='currentColor' style='font-size:1em'>k</text>
+<text text-anchor='middle' x='56' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='56' y='68' fill='currentColor' style='font-size:1em'>k</text>
+<text text-anchor='middle' x='56' y='100' fill='currentColor' style='font-size:1em'>n</text>
+<text text-anchor='middle' x='56' y='132' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='56' y='164' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='56' y='228' fill='currentColor' style='font-size:1em'>O</text>
+<text text-anchor='middle' x='56' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='56' y='308' fill='currentColor' style='font-size:1em'>s</text>
+<text text-anchor='middle' x='56' y='340' fill='currentColor' style='font-size:1em'>l</text>
+<text text-anchor='middle' x='56' y='372' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='64' y='20' fill='currentColor' style='font-size:1em'>s</text>
+<text text-anchor='middle' x='64' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='64' y='100' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='64' y='132' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='64' y='164' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='64' y='228' fill='currentColor' style='font-size:1em'>V</text>
+<text text-anchor='middle' x='64' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='64' y='276' fill='currentColor' style='font-size:1em'>h</text>
+<text text-anchor='middle' x='64' y='308' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='64' y='340' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='64' y='372' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='72' y='20' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='72' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='72' y='68' fill='currentColor' style='font-size:1em'>n</text>
+<text text-anchor='middle' x='72' y='164' fill='currentColor' style='font-size:1em'>c</text>
+<text text-anchor='middle' x='72' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='72' y='276' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='72' y='308' fill='currentColor' style='font-size:1em'>c</text>
+<text text-anchor='middle' x='72' y='372' fill='currentColor' style='font-size:1em'>c</text>
+<text text-anchor='middle' x='80' y='20' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='80' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='80' y='68' fill='currentColor' style='font-size:1em'>u</text>
+<text text-anchor='middle' x='80' y='100' fill='currentColor' style='font-size:1em'>h</text>
+<text text-anchor='middle' x='80' y='132' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='80' y='164' fill='currentColor' style='font-size:1em'>.</text>
+<text text-anchor='middle' x='80' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='80' y='276' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='80' y='308' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='80' y='340' fill='currentColor' style='font-size:1em'>p</text>
+<text text-anchor='middle' x='80' y='372' fill='currentColor' style='font-size:1em'>.</text>
+<text text-anchor='middle' x='88' y='20' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='88' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='88' y='68' fill='currentColor' style='font-size:1em'>m</text>
+<text text-anchor='middle' x='88' y='100' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='88' y='132' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='88' y='164' fill='currentColor' style='font-size:1em'>.</text>
+<text text-anchor='middle' x='88' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='88' y='276' fill='currentColor' style='font-size:1em'>d</text>
+<text text-anchor='middle' x='88' y='308' fill='currentColor' style='font-size:1em'>i</text>
+<text text-anchor='middle' x='88' y='340' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='88' y='372' fill='currentColor' style='font-size:1em'>.</text>
+<text text-anchor='middle' x='96' y='20' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='96' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='96' y='68' fill='currentColor' style='font-size:1em'>b</text>
+<text text-anchor='middle' x='96' y='100' fill='currentColor' style='font-size:1em'>s</text>
+<text text-anchor='middle' x='96' y='132' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='96' y='164' fill='currentColor' style='font-size:1em'>.</text>
+<text text-anchor='middle' x='96' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='96' y='276' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='96' y='308' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='96' y='340' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='96' y='372' fill='currentColor' style='font-size:1em'>.</text>
+<text text-anchor='middle' x='104' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='104' y='68' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='104' y='100' fill='currentColor' style='font-size:1em'>h</text>
+<text text-anchor='middle' x='104' y='132' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='104' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='104' y='276' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='104' y='308' fill='currentColor' style='font-size:1em'>n</text>
+<text text-anchor='middle' x='104' y='340' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='112' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='112' y='68' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='112' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='112' y='308' fill='currentColor' style='font-size:1em'>s</text>
+<text text-anchor='middle' x='112' y='340' fill='currentColor' style='font-size:1em'>f</text>
+<text text-anchor='middle' x='120' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='120' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='120' y='340' fill='currentColor' style='font-size:1em'>s</text>
+<text text-anchor='middle' x='128' y='36' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='128' y='244' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='312' y='196' fill='currentColor' style='font-size:1em'>P</text>
+<text text-anchor='middle' x='320' y='196' fill='currentColor' style='font-size:1em'>V</text>
+<text text-anchor='middle' x='328' y='196' fill='currentColor' style='font-size:1em'>F</text>
+<text text-anchor='middle' x='344' y='196' fill='currentColor' style='font-size:1em'>(</text>
+<text text-anchor='middle' x='352' y='196' fill='currentColor' style='font-size:1em'>W</text>
+<text text-anchor='middle' x='360' y='196' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='368' y='196' fill='currentColor' style='font-size:1em'>s</text>
+<text text-anchor='middle' x='376' y='196' fill='currentColor' style='font-size:1em'>m</text>
+<text text-anchor='middle' x='384' y='196' fill='currentColor' style='font-size:1em'>)</text>
+<text text-anchor='middle' x='528' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='536' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='544' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='552' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='552' y='164' fill='currentColor' style='font-size:1em'>b</text>
+<text text-anchor='middle' x='560' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='560' y='164' fill='currentColor' style='font-size:1em'>l</text>
+<text text-anchor='middle' x='560' y='196' fill='currentColor' style='font-size:1em'>p</text>
+<text text-anchor='middle' x='560' y='228' fill='currentColor' style='font-size:1em'>s</text>
+<text text-anchor='middle' x='568' y='116' fill='currentColor' style='font-size:1em'>n</text>
+<text text-anchor='middle' x='568' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='568' y='164' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='568' y='196' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='568' y='228' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='576' y='116' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='576' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='576' y='164' fill='currentColor' style='font-size:1em'>c</text>
+<text text-anchor='middle' x='576' y='196' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='576' y='228' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='576' y='260' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='584' y='116' fill='currentColor' style='font-size:1em'>w</text>
+<text text-anchor='middle' x='584' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='584' y='164' fill='currentColor' style='font-size:1em'>k</text>
+<text text-anchor='middle' x='584' y='196' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='584' y='228' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='584' y='260' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='592' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='592' y='196' fill='currentColor' style='font-size:1em'>n</text>
+<text text-anchor='middle' x='592' y='228' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='592' y='260' fill='currentColor' style='font-size:1em'>c</text>
+<text text-anchor='middle' x='600' y='116' fill='currentColor' style='font-size:1em'>s</text>
+<text text-anchor='middle' x='600' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='600' y='164' fill='currentColor' style='font-size:1em'>n</text>
+<text text-anchor='middle' x='600' y='196' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='600' y='260' fill='currentColor' style='font-size:1em'>.</text>
+<text text-anchor='middle' x='608' y='116' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='608' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='608' y='164' fill='currentColor' style='font-size:1em'>u</text>
+<text text-anchor='middle' x='608' y='228' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='608' y='260' fill='currentColor' style='font-size:1em'>.</text>
+<text text-anchor='middle' x='616' y='116' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='616' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='616' y='164' fill='currentColor' style='font-size:1em'>m</text>
+<text text-anchor='middle' x='616' y='196' fill='currentColor' style='font-size:1em'>h</text>
+<text text-anchor='middle' x='616' y='228' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='616' y='260' fill='currentColor' style='font-size:1em'>.</text>
+<text text-anchor='middle' x='624' y='116' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='624' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='624' y='164' fill='currentColor' style='font-size:1em'>b</text>
+<text text-anchor='middle' x='624' y='196' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='624' y='228' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='632' y='116' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='632' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='632' y='164' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='632' y='196' fill='currentColor' style='font-size:1em'>s</text>
+<text text-anchor='middle' x='632' y='228' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='640' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='640' y='164' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='640' y='196' fill='currentColor' style='font-size:1em'>h</text>
+<text text-anchor='middle' x='648' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='656' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='664' y='132' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='672' y='132' fill='currentColor' style='font-size:1em'>=</text>
+</g>
+
+    </svg>
+  
+</div>
+<p>Note that I said typically. That is because Polkadot does not impose any restrictions on how the
+state nor POV is represented. In fact, those are opaque blobs to validators, and PVF is free to
+interpret them in any way it wants.</p>
+<p>Example: a ZK parachain. The state stores the current state root, the POV stores the transaction
+list, the ZK proof, and the new state root. The PVF just verifies the ZK proof and
+updates the state root.</p>
+<p>Another rather extreme example: a parachain storing only a counter in the state. The PVF just
+increments the counter by the value given in the POV. No merkle trie is used.</p>
+<p>The size of the state part is limited to several kilobytes. The size of the POV is currently limited
+by around 4 MiB<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> and is planned to be increased to 16 MiB in the future. As long as you can fit
+your state and POV into those limits and represent your state transition function as a WebAssembly
+module, you can deploy a parachain on Polkadot.</p>
+<h3 id="consensus">Consensus<a href="#consensus" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>The Polkadot relay chain has 1000<sup id="fnref1:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> validators. However, only
+300<sup id="fnref2:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> of them are actively participating in the consensus. This makes up the
+active validator set. This set changes approximately every 4<sup id="fnref3:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> hours.</p>
+<p>Validators from the active validator list can extend the relay chain with new blocks. A validator
+is selected utilizing a VRF<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>. Simply speaking, the validators roll a dice, and one (or more) lucky
+validator is chosen to create a new block. The mechanism is called BABE. You can read <a href="https://polkadot.network/blog/polkadot-consensus-part-3-babe/">here</a>
+for more details.</p>
+<p>The finalization of the relay chain blocks is done by GRANDPA. Again without diving into details, in GRANDPA, the validators from the active validator set are voting on the head of the chain they
+believe to be the best. The finalization is achieved when a supermajority of validators vote for
+the chain<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>.</p>
+<p>Validators from the active validator set are also responsible for attesting parachain candidates in a process called <strong>backing</strong>. The active validator set is split into groups of 5 validators<sup id="fnref4:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>. Each group is
+responsible for validating a particular parachain. The groups&rsquo; assignments to parachains change every few blocks.</p>
+<!-- raw HTML omitted -->
+
+
+
+<div class="goat svg-container ">
+  
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      font-family="Menlo,Lucida Console,monospace"
+      
+        viewBox="0 0 448 393"
+      >
+      <g transform='translate(8,16)'>
+<path d='M 32,144 L 184,144' fill='none' stroke='currentColor'></path>
+<path d='M 32,240 L 184,240' fill='none' stroke='currentColor'></path>
+<path d='M 32,336 L 184,336' fill='none' stroke='currentColor'></path>
+<path d='M 16,352 L 200,352' fill='none' stroke='currentColor'></path>
+<path d='M 0,368 L 432,368' fill='none' stroke='currentColor'></path>
+<path d='M 0,16 L 0,368' fill='none' stroke='currentColor'></path>
+<path d='M 16,48 L 16,352' fill='none' stroke='currentColor'></path>
+<path d='M 32,80 L 32,144' fill='none' stroke='currentColor'></path>
+<path d='M 32,176 L 32,240' fill='none' stroke='currentColor'></path>
+<path d='M 32,272 L 32,336' fill='none' stroke='currentColor'></path>
+<path d='M 184,80 L 184,144' fill='none' stroke='currentColor'></path>
+<path d='M 184,176 L 184,240' fill='none' stroke='currentColor'></path>
+<path d='M 184,272 L 184,336' fill='none' stroke='currentColor'></path>
+<path d='M 200,48 L 200,352' fill='none' stroke='currentColor'></path>
+<path d='M 432,16 L 432,368' fill='none' stroke='currentColor'></path>
+<path d='M 64,96 A 16,16 0 0,0 48,112' fill='none' stroke='currentColor'></path>
+<path d='M 64,96 A 16,16 0 0,1 80,112' fill='none' stroke='currentColor'></path>
+<path d='M 136,96 A 16,16 0 0,0 120,112' fill='none' stroke='currentColor'></path>
+<path d='M 136,96 A 16,16 0 0,1 152,112' fill='none' stroke='currentColor'></path>
+<path d='M 48,112 A 16,16 0 0,0 64,128' fill='none' stroke='currentColor'></path>
+<path d='M 80,112 A 16,16 0 0,1 64,128' fill='none' stroke='currentColor'></path>
+<path d='M 120,112 A 16,16 0 0,0 136,128' fill='none' stroke='currentColor'></path>
+<path d='M 152,112 A 16,16 0 0,1 136,128' fill='none' stroke='currentColor'></path>
+<path d='M 64,192 A 16,16 0 0,0 48,208' fill='none' stroke='currentColor'></path>
+<path d='M 64,192 A 16,16 0 0,1 80,208' fill='none' stroke='currentColor'></path>
+<path d='M 136,192 A 16,16 0 0,0 120,208' fill='none' stroke='currentColor'></path>
+<path d='M 136,192 A 16,16 0 0,1 152,208' fill='none' stroke='currentColor'></path>
+<path d='M 264,192 A 16,16 0 0,0 248,208' fill='none' stroke='currentColor'></path>
+<path d='M 264,192 A 16,16 0 0,1 280,208' fill='none' stroke='currentColor'></path>
+<path d='M 320,192 A 16,16 0 0,0 304,208' fill='none' stroke='currentColor'></path>
+<path d='M 320,192 A 16,16 0 0,1 336,208' fill='none' stroke='currentColor'></path>
+<path d='M 384,192 A 16,16 0 0,0 368,208' fill='none' stroke='currentColor'></path>
+<path d='M 384,192 A 16,16 0 0,1 400,208' fill='none' stroke='currentColor'></path>
+<path d='M 48,208 A 16,16 0 0,0 64,224' fill='none' stroke='currentColor'></path>
+<path d='M 80,208 A 16,16 0 0,1 64,224' fill='none' stroke='currentColor'></path>
+<path d='M 120,208 A 16,16 0 0,0 136,224' fill='none' stroke='currentColor'></path>
+<path d='M 152,208 A 16,16 0 0,1 136,224' fill='none' stroke='currentColor'></path>
+<path d='M 248,208 A 16,16 0 0,0 264,224' fill='none' stroke='currentColor'></path>
+<path d='M 280,208 A 16,16 0 0,1 264,224' fill='none' stroke='currentColor'></path>
+<path d='M 304,208 A 16,16 0 0,0 320,224' fill='none' stroke='currentColor'></path>
+<path d='M 336,208 A 16,16 0 0,1 320,224' fill='none' stroke='currentColor'></path>
+<path d='M 368,208 A 16,16 0 0,0 384,224' fill='none' stroke='currentColor'></path>
+<path d='M 400,208 A 16,16 0 0,1 384,224' fill='none' stroke='currentColor'></path>
+<path d='M 64,288 A 16,16 0 0,0 48,304' fill='none' stroke='currentColor'></path>
+<path d='M 64,288 A 16,16 0 0,1 80,304' fill='none' stroke='currentColor'></path>
+<path d='M 136,288 A 16,16 0 0,0 120,304' fill='none' stroke='currentColor'></path>
+<path d='M 136,288 A 16,16 0 0,1 152,304' fill='none' stroke='currentColor'></path>
+<path d='M 48,304 A 16,16 0 0,0 64,320' fill='none' stroke='currentColor'></path>
+<path d='M 80,304 A 16,16 0 0,1 64,320' fill='none' stroke='currentColor'></path>
+<path d='M 120,304 A 16,16 0 0,0 136,320' fill='none' stroke='currentColor'></path>
+<path d='M 152,304 A 16,16 0 0,1 136,320' fill='none' stroke='currentColor'></path>
+<text text-anchor='middle' x='8' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='16' y='20' fill='currentColor' style='font-size:1em'>A</text>
+<text text-anchor='middle' x='24' y='20' fill='currentColor' style='font-size:1em'>l</text>
+<text text-anchor='middle' x='24' y='52' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='32' y='20' fill='currentColor' style='font-size:1em'>l</text>
+<text text-anchor='middle' x='32' y='52' fill='currentColor' style='font-size:1em'>A</text>
+<text text-anchor='middle' x='40' y='52' fill='currentColor' style='font-size:1em'>c</text>
+<text text-anchor='middle' x='40' y='84' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='40' y='180' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='40' y='276' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='48' y='20' fill='currentColor' style='font-size:1em'>V</text>
+<text text-anchor='middle' x='48' y='52' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='48' y='84' fill='currentColor' style='font-size:1em'>B</text>
+<text text-anchor='middle' x='48' y='180' fill='currentColor' style='font-size:1em'>B</text>
+<text text-anchor='middle' x='48' y='276' fill='currentColor' style='font-size:1em'>B</text>
+<text text-anchor='middle' x='56' y='20' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='56' y='52' fill='currentColor' style='font-size:1em'>i</text>
+<text text-anchor='middle' x='56' y='84' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='56' y='180' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='56' y='276' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='64' y='20' fill='currentColor' style='font-size:1em'>l</text>
+<text text-anchor='middle' x='64' y='52' fill='currentColor' style='font-size:1em'>v</text>
+<text text-anchor='middle' x='64' y='84' fill='currentColor' style='font-size:1em'>c</text>
+<text text-anchor='middle' x='64' y='116' fill='currentColor' style='font-size:1em'>1</text>
+<text text-anchor='middle' x='64' y='180' fill='currentColor' style='font-size:1em'>c</text>
+<text text-anchor='middle' x='64' y='212' fill='currentColor' style='font-size:1em'>3</text>
+<text text-anchor='middle' x='64' y='276' fill='currentColor' style='font-size:1em'>c</text>
+<text text-anchor='middle' x='64' y='308' fill='currentColor' style='font-size:1em'>5</text>
+<text text-anchor='middle' x='72' y='20' fill='currentColor' style='font-size:1em'>i</text>
+<text text-anchor='middle' x='72' y='52' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='72' y='84' fill='currentColor' style='font-size:1em'>k</text>
+<text text-anchor='middle' x='72' y='180' fill='currentColor' style='font-size:1em'>k</text>
+<text text-anchor='middle' x='72' y='276' fill='currentColor' style='font-size:1em'>k</text>
+<text text-anchor='middle' x='80' y='20' fill='currentColor' style='font-size:1em'>d</text>
+<text text-anchor='middle' x='80' y='84' fill='currentColor' style='font-size:1em'>i</text>
+<text text-anchor='middle' x='80' y='180' fill='currentColor' style='font-size:1em'>i</text>
+<text text-anchor='middle' x='80' y='276' fill='currentColor' style='font-size:1em'>i</text>
+<text text-anchor='middle' x='88' y='20' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='88' y='52' fill='currentColor' style='font-size:1em'>V</text>
+<text text-anchor='middle' x='88' y='84' fill='currentColor' style='font-size:1em'>n</text>
+<text text-anchor='middle' x='88' y='180' fill='currentColor' style='font-size:1em'>n</text>
+<text text-anchor='middle' x='88' y='276' fill='currentColor' style='font-size:1em'>n</text>
+<text text-anchor='middle' x='96' y='20' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='96' y='52' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='96' y='84' fill='currentColor' style='font-size:1em'>g</text>
+<text text-anchor='middle' x='96' y='180' fill='currentColor' style='font-size:1em'>g</text>
+<text text-anchor='middle' x='96' y='276' fill='currentColor' style='font-size:1em'>g</text>
+<text text-anchor='middle' x='104' y='20' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='104' y='52' fill='currentColor' style='font-size:1em'>l</text>
+<text text-anchor='middle' x='112' y='20' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='112' y='52' fill='currentColor' style='font-size:1em'>i</text>
+<text text-anchor='middle' x='112' y='84' fill='currentColor' style='font-size:1em'>G</text>
+<text text-anchor='middle' x='112' y='180' fill='currentColor' style='font-size:1em'>G</text>
+<text text-anchor='middle' x='112' y='276' fill='currentColor' style='font-size:1em'>G</text>
+<text text-anchor='middle' x='120' y='20' fill='currentColor' style='font-size:1em'>s</text>
+<text text-anchor='middle' x='120' y='52' fill='currentColor' style='font-size:1em'>d</text>
+<text text-anchor='middle' x='120' y='84' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='120' y='180' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='120' y='276' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='128' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='128' y='52' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='128' y='84' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='128' y='180' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='128' y='276' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='136' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='136' y='52' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='136' y='84' fill='currentColor' style='font-size:1em'>u</text>
+<text text-anchor='middle' x='136' y='116' fill='currentColor' style='font-size:1em'>2</text>
+<text text-anchor='middle' x='136' y='180' fill='currentColor' style='font-size:1em'>u</text>
+<text text-anchor='middle' x='136' y='212' fill='currentColor' style='font-size:1em'>4</text>
+<text text-anchor='middle' x='136' y='276' fill='currentColor' style='font-size:1em'>u</text>
+<text text-anchor='middle' x='136' y='308' fill='currentColor' style='font-size:1em'>6</text>
+<text text-anchor='middle' x='144' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='144' y='52' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='144' y='84' fill='currentColor' style='font-size:1em'>p</text>
+<text text-anchor='middle' x='144' y='180' fill='currentColor' style='font-size:1em'>p</text>
+<text text-anchor='middle' x='144' y='276' fill='currentColor' style='font-size:1em'>p</text>
+<text text-anchor='middle' x='152' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='152' y='52' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='160' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='160' y='52' fill='currentColor' style='font-size:1em'>s</text>
+<text text-anchor='middle' x='160' y='84' fill='currentColor' style='font-size:1em'>1</text>
+<text text-anchor='middle' x='160' y='180' fill='currentColor' style='font-size:1em'>2</text>
+<text text-anchor='middle' x='160' y='276' fill='currentColor' style='font-size:1em'>3</text>
+<text text-anchor='middle' x='168' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='168' y='52' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='168' y='84' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='168' y='180' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='168' y='276' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='176' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='176' y='52' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='176' y='84' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='176' y='180' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='176' y='276' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='184' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='184' y='52' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='192' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='192' y='52' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='200' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='208' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='216' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='224' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='232' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='240' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='248' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='256' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='264' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='264' y='212' fill='currentColor' style='font-size:1em'>7</text>
+<text text-anchor='middle' x='272' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='280' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='288' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='296' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='304' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='312' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='320' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='320' y='212' fill='currentColor' style='font-size:1em'>8</text>
+<text text-anchor='middle' x='328' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='336' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='344' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='352' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='360' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='368' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='376' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='384' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='384' y='212' fill='currentColor' style='font-size:1em'>9</text>
+<text text-anchor='middle' x='392' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='400' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='408' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='416' y='20' fill='currentColor' style='font-size:1em'>-</text>
+<text text-anchor='middle' x='424' y='20' fill='currentColor' style='font-size:1em'>-</text>
+</g>
+
+    </svg>
+  
+</div>
+<p>In the figure above, the validators are represented with numbers. The validators 7-9 are inactive
+and do not participate in the consensus actively, at least not in the current session. 1-6 are active.
+1-2, 3-4, and 5-6 make up the backing groups 1, 2, and 3, respectively.</p>
+<p>To advance the state of a parachain, a POV is required. In reality, the validators also need a piece
+of data that sums up the state transition. Let&rsquo;s call that piece of data a receipt and the combination
+of the receipt and the POV a parachain <strong>candidate</strong>.</p>
+<p>Validators do not create candidates but only attest to them. It&rsquo;s the job of nodes that are not a part
+of the parachain consensus to create candidates. Those nodes are called <strong>collators</strong>. Typically,
+those are full nodes on the parachain network. They collect transactions, create a parachain block
+and a corresponding candidate, then submit it to the validators. If you are familiar with rollups,
+you can think of collators similar to sequencers.</p>
+<p>Once created, a candidate is sent to a validator in the appropriate backing group. The validator runs the PVF
+with the given POV and the current state found on the relay chain. If the candidate turns out to be
+valid, the validator circulates the candidate to other validators in the backing group. Once validators check the candidate, they issue a backing statement. Those backing statements are gossiped to all
+the validators in the active set.</p>
+<p>When it&rsquo;s time to create the next relay chain block, the block author would include the candidates
+that have received enough backing statements into the new block. It&rsquo;s worth noting that only the
+receipt part of the candidate is included on the relay chain. At this point, only the backing
+group possesses the full PoV.</p>
+<p>The next step is ensuring <strong>availability</strong>. Sending and storing whole PoVs is prohibitively expensive.
+So POVs are split into chunks and distributed among validators. So Polkadot leverages erasure coding
+to split the POV into chunks, and a large subset of chunks can recover the original POV. Each validator
+stores only one chunk for a particular POV. The protocol works as follows. If a validator from the active set notices
+a candidate included in the relay chain, it requests the chunk from the validators that backed that
+candidate. Once the chunk reaches the validator, it signs and gossips a statement within the active
+validator set. The next relay chain block author includes all the signed statements into the block.
+As soon as enough statements confirming possession of chunks are included, the candidate is considered
+available.</p>
+<p>Once the candidate is available the state transition is considered effectful. That is, the new state
+returned by the PVF is saved in the relay chain, messages sent by the parachain are dispatched, etc.</p>
+<p>Note, however, that so far the candidate was checked only by 5<sup id="fnref5:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> validators. Even though the backing
+groups are chosen randomly, it&rsquo;s still possible that validators in the backing group colluded and
+produced a bad candidate. That&rsquo;s because backing does not really contribute to overall security. The actual
+security is provided by the <strong>approval</strong> process.</p>
+<p>Above I mentioned that GRANDPA finalizes the relay chain blocks. I did not mention though that
+GRANDPA will only consider a relay chain block ready for finalization if all the candidates included
+are approved.</p>
+<p>Approvals are done by the validators from the active set. The process is triggered for each candidate
+once it&rsquo;s available. The approval validators would try to reconstruct the PoV, run the PVF and verify
+the result. At the end of the process, the validator issues an approval vote.</p>
+<p>The mechanism is designed to:</p>
+<ul>
+<li>Not reveal the identity of the validators until the last moment. Here, Polkadot relies on VRFs again.</li>
+<li>Ensure that the validators are randomly distributed across the active validator set.</li>
+<li>Ensure to deliver at least the minimum number of approval votes.</li>
+</ul>
+<p>In case an assigned validator does not approve the candidate in time, then more approvers are assigned
+for that candidate.</p>
+<p>On average, only 40<sup id="fnref6:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> approval validators check any given candidate. It&rsquo;s not a
+big number, but the probability of a bad candidate being approved is astronomically small.</p>
+<p>One last mechanism I want to mention is <strong>disputes</strong>. This mechanism is designed to ensure that each
+attempt to misbehave is caught. While the backing and approval mechanisms work within a single fork, the disputes mechanism can catch misbehaviors that occur across multiple forks.</p>
+<p>Let&rsquo;s reiterate the lifecycle of a parachain candidate:</p>
+<ol>
+<li>A candidate for a parachain is created by that parachain&rsquo;s collator.</li>
+<li>The candidate is sent to a validator in the parachain&rsquo;s backing group.</li>
+<li>The validator shares the candidate with other validators from the same group if the candidate is OK.</li>
+<li>The relay chain block author includes the candidate into the relay chain block.</li>
+<li>All validators fetch the chunks of the candidate&rsquo;s PoV and broadcast a signed statement confirming possession of the chunk. The statements are included in the relay chain block.</li>
+<li>The approval process is run and the relay chain block is now ready for finalization.</li>
+</ol>
+<h2 id="conclusion">Conclusion<a href="#conclusion" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>I hope I provided a good overview of the Polkadot consensus and how parachains work. See the <a href="https://polkadot.network/blog/polkadot-v1-0-sharding-and-economic-security/">Polkadot v1.0 blog post</a>. Also <a href="https://paritytech.github.io/polkadot/book/">Polkadot Book</a> is also worth a look.</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>This number is for illustration purposes only. One of the reasons for this
+is that the chain is evolving quickly, and the actual number might have changed by the time you read this.
+Also, the numbers might differ between e.g. Polkadot and Kusama.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a>&#160;<a href="#fnref1:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a>&#160;<a href="#fnref2:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a>&#160;<a href="#fnref3:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a>&#160;<a href="#fnref4:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a>&#160;<a href="#fnref5:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a>&#160;<a href="#fnref6:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>VRF stands for Verifiable Random Function. Read more <a href="https://wiki.polkadot.network/docs/learn-randomness#:~:text=VRF%E2%80%8B,random%20number%20generation%20is%20valid.">here</a>.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p>Why chain? Why not a block? This is how GRANDPA works, it does not finalize
+individual blocks, it finalizes subchains. Given different validators voting for different chains,
+that last common block of those chains will be finalized. More details <a href="https://polkadot.network/blog/polkadot-consensus-part-2-grandpa/">here</a>.&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        
+        <span class="button next">
+            <a href="/posts/wasm-fraud-proofs/">
+                <span class="button__text">Why Wasm is not the best format for Fraud Proofs</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="/assets/main.js"></script>
+<script src="/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>
