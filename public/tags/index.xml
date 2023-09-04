@@ -9,35 +9,15 @@
     <description>Recent content in Tags on pepyakin</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 07 Nov 2022 14:11:26 +0100</lastBuildDate>
+    <lastBuildDate>Mon, 04 Sep 2023 18:12:27 +0200</lastBuildDate>
     
 	<atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>polkadot</title>
-      <link>/tags/polkadot/</link>
-      <pubDate>Mon, 07 Nov 2022 14:11:26 +0100</pubDate>
-      
-      <guid>/tags/polkadot/</guid>
-      <description>
-        
-          
-          
-          
-        
-        
-        
-          
-          
-        
-        </description>
-    </item>
-    
-    <item>
       <title>fraud proofs</title>
       <link>/tags/fraud-proofs/</link>
-      <pubDate>Thu, 01 Sep 2022 16:00:00 +0000</pubDate>
+      <pubDate>Mon, 04 Sep 2023 18:12:27 +0200</pubDate>
       
       <guid>/tags/fraud-proofs/</guid>
       <description>
@@ -55,11 +35,91 @@
     </item>
     
     <item>
+      <title>light clients</title>
+      <link>/tags/light-clients/</link>
+      <pubDate>Mon, 04 Sep 2023 18:12:27 +0200</pubDate>
+      
+      <guid>/tags/light-clients/</guid>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          
+          
+        
+        </description>
+    </item>
+    
+    <item>
       <title>rollups</title>
       <link>/tags/rollups/</link>
-      <pubDate>Thu, 01 Sep 2022 16:00:00 +0000</pubDate>
+      <pubDate>Mon, 04 Sep 2023 18:12:27 +0200</pubDate>
       
       <guid>/tags/rollups/</guid>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          
+          
+        
+        </description>
+    </item>
+    
+    <item>
+      <title>sharding</title>
+      <link>/tags/sharding/</link>
+      <pubDate>Mon, 04 Sep 2023 18:12:27 +0200</pubDate>
+      
+      <guid>/tags/sharding/</guid>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          
+          
+        
+        </description>
+    </item>
+    
+    <item>
+      <title>validity proofs</title>
+      <link>/tags/validity-proofs/</link>
+      <pubDate>Mon, 04 Sep 2023 18:12:27 +0200</pubDate>
+      
+      <guid>/tags/validity-proofs/</guid>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          
+          
+        
+        </description>
+    </item>
+    
+    <item>
+      <title>polkadot</title>
+      <link>/tags/polkadot/</link>
+      <pubDate>Mon, 07 Nov 2022 14:11:26 +0100</pubDate>
+      
+      <guid>/tags/polkadot/</guid>
       <description>
         
           

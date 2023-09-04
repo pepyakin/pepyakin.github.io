@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+      <title>
+        It&#39;s all about light clients ::
+        pepyakin
+      </title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta
+  name="description"
+  content="Special thanks to Andre Silva, Bastian Köcher, Guillaume Ballet and Robert Habermeier for their valuable feedback.
+In this write-up, I will introduce a useful notion of State Commitment Arguments and how they are used by light clients. We will go through the following topics:
+Full nodes and how they are foundational. Light clients and how they are very important. All flavors of rollups: pessimistic, sovereign, and classic. How this mental model incorporates the upcoming upgrades of ethereum like stateless clients or ZK clients."
+/>
+<meta
+  name="keywords"
+  content=""
+/>
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="/posts/sca-and-light-clients/" />
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/style.css" />
+
+<link rel="stylesheet" href="/style.css" />
+
+
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/img/apple-touch-icon-144-precomposed.png" />
+<link rel="shortcut icon" href="/img/favicon.png" />
+
+
+<link href="/fonts/Inter-Italic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Regular.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Medium.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-MediumItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Bold.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-BoldItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="It&#39;s all about light clients"/>
+<meta name="twitter:description" content="I discuss the notion of state commitment arguments and how they are used to build light clients."/>
+
+
+
+<meta property="og:title" content="It&#39;s all about light clients" />
+<meta property="og:description" content="I discuss the notion of state commitment arguments and how they are used to build light clients." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/posts/sca-and-light-clients/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-09-04T18:12:27+02:00" />
+<meta property="article:modified_time" content="2023-09-04T18:12:27+02:00" /><meta property="og:site_name" content="pepyakin" />
+
+
+
+
+
+
+
+  </head>
+  <body >
+    <div class="container">
+      <header class="header">
+  <span class="header__inner">
+    <a
+  href="/"
+  class="logo"
+  style="text-decoration: none;"
+>
+  
+    <span class="logo__text"
+      >pepyakin</span
+    >
+  
+</a>
+
+    <span class="header__right">
+      
+      <span class="theme-toggle">
+        <svg
+  class="theme-toggler"
+  width="24"
+  height="24"
+  viewBox="0 0 48 48"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
+  3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
+  13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"
+  />
+</svg>
+
+      </span>
+    </span>
+  </span>
+</header>
+
+
+      <div class="content">
+        
+  
+  
+
+  <article class="post">
+    <h1 class="post-title">It&rsquo;s all about light clients</h1>
+    <div class="post-meta">
+      
+        <time class="post-date">
+          2023-09-04
+        </time>
+
+        
+          
+        
+      
+
+      
+        <span class="post-author"
+          >— Written by pepyakin</span
+        >
+
+
+      
+    </div>
+
+    
+      <span class="post-tags">
+        
+          <a href="/tags/rollups/">#rollups</a>&nbsp;
+        
+          <a href="/tags/sharding/">#sharding</a>&nbsp;
+        
+          <a href="/tags/light-clients/">#light clients</a>&nbsp;
+        
+          <a href="/tags/fraud-proofs/">#fraud proofs</a>&nbsp;
+        
+          <a href="/tags/validity-proofs/">#validity proofs</a>&nbsp;
+        
+      </span>
+    
+
+    
+
+    <div class="post-content">
+      
+      <p><em>Special thanks to <a href="https://twitter.com/andrebeat">Andre Silva</a>, <a href="https://twitter.com/bkchr">Bastian Köcher</a>, <a href="https://twitter.com/gballet">Guillaume Ballet</a> and <a href="https://twitter.com/rphmeier">Robert Habermeier</a> for their valuable feedback.</em></p>
+<p>In this write-up, I will introduce a useful notion of State Commitment Arguments and how they are used by light clients. We will go through the following topics:</p>
+<ol>
+<li>Full nodes and how they are foundational.</li>
+<li>Light clients and how they are very important.</li>
+<li>All flavors of rollups: pessimistic, sovereign, and classic.</li>
+<li>How this mental model incorporates the upcoming upgrades of ethereum like stateless clients or ZK clients.</li>
+<li>I will also talk about an Ethereum feature that never happened: sharding.</li>
+</ol>
+<p>but first, let&rsquo;s define some notions because I know how hard it is to have discourse these days.</p>
+<hr>
+<p>Blockchain is a state machine replication system, and as such it is defined by:</p>
+<ol>
+<li>The <strong>state</strong>.</li>
+<li>The <strong>input</strong>.</li>
+<li>The state transition function (<strong>STF</strong>). A function that takes the current state and the inputs and produces the new state. This function is deterministic, meaning that passing the same state and inputs will lead to the same resulting state.</li>
+</ol>
+<p>If you take Ethereum, then the state would be the Merkle-Patricia Trie, the STF would be EVM and blocks would act as the input. Well, turns out this is too simplistic for a couple of reasons.</p>
+<p>First, in Ethereum, the state transition is not limited to only EVM. Second, and more importantly for this discussion, a block bundles not only inputs but also outputs of the STF, as well as data that is not fed into the STF.</p>
+<p>The actual inputs to the STF are the list of transactions (a.k.a. the block body) and values that are observable by EVM (e.g. <code>timestamp</code>, <code>base_fee</code>) or otherwise participate in the STF (e.g. <code>fee_recipient</code>).</p>
+<p>Fields such as <code>state_root</code>, <code>receipts_root</code>, <code>log_blooms</code> are outputs. There are several arguments for why they are outputs. First, they are definitely not inputs because they are not used within the STF. They are outputs because they can only be computed by executing the STF.</p>
+<p>Before I continue, I think it would be good to give a name for a blockchain construction like this for further discussion. I will call it a <strong>classical blockchain</strong>, and it encompasses chains like Ethereum, everything built on CometBFT and Substrate, and so on.</p>
+<hr>
+<p>But do the blocks really have to contain the outputs? What would happen if we removed e.g. <code>state_root</code>? Would it be even a functional blockchain?</p>
+<p>It turns out yes, sort of.</p>
+<p>Recall that blockchains replicate a state machine and for that they need inputs. As long as the inputs fed to the STF are the same, it will arrive to the same final state.</p>
+<p>I don&rsquo;t think this is a groundbreaking statement. Actually, a real-life example of that is Bitcoin. The state is represented by a set of UTXO, yet, bitcoin blocks do not contain a commitment to that state. It&rsquo;s implied by the inputs.</p>
+<p>Note that:</p>
+<ul>
+<li>This property doesn&rsquo;t have anything to do with PoW. In PoS this works exactly the same: the state root is not required for attesting the blocks. The votes can target specific block hashes.</li>
+<li>Block import can never fail due to state root mismatch, because, well, there is no state root to match with.</li>
+<li>Merkle tries help with fork handling, but are not strictly necessary for it. Any <a href="https://en.wikipedia.org/wiki/Persistent_data_structure">persistent data structure</a> will do and every state can be referred to via the block hash.</li>
+<li>Likewise, merkle tries somewhat help with detecting data corruption. Then again, it&rsquo;s not like every bitflip will be noticed immediately. That also can be solved by a non-cryptographic checksum.</li>
+</ul>
+<hr>
+<p>But why does almost every modern blockchain have commitments to the state in their blocks? Well, as you guessed it, it&rsquo;s all about the light clients.</p>
+<blockquote>
+<p>ℹ️ A <strong>light client</strong> is a client that doesn&rsquo;t have access to the full state.</p>
+<p>There is a common misconception that light clients are not secure, but that is not true (you probably heard of the term verifying light client). It should become clear why is that in a moment.</p>
+</blockquote>
+<p>The objective of a light client is to obtain a recent state commitment. Given that, it can verify the claims about the committed state from the full nodes. Turns out this is a very useful property because it allows access to the state without having to replay all transactions from the beginning of time. This is great because:</p>
+<ol>
+<li>Allows for user devices to access the state in a trust-minimized way.</li>
+<li>Enables more efficient syncing.</li>
+<li>Enables remote blockchains to establish a view of the state, and thus communicate. This is especially important because replaying the STF within another blockchain STF is not very scalable.</li>
+</ol>
+<p>So by adding a state commitment into the blocks, the blockchain would gain all those benefits and by that, we get our classical blockchain. But is this the only way?</p>
+<hr>
+<p>Two mechanisms allow us to achieve a similar thing that are well-known in the community. Those are fault proofs and validity proofs.</p>
+<ol>
+<li>Validity proofs. There are two subtypes. SNARK proofs represent a cryptographic argument that shows that a certain claim is correct. Another subtype is reexecution proofs when the claim is re-executed using the merkle proofs (or other commitments) of the parts of the state that were accessed.</li>
+<li>Fault proofs. Some actor posts a claim that a certain set of inputs results in a certain state commitment. Light clients pencil in the claim. Anybody can produce a proof<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> that the claim is invalid. In case nobody produces such commitment, light clients accept the claim as truthful.</li>
+</ol>
+<p>Now if we removed the state commitment from a block and inserted one of the mechanisms above,  we would get a system that has very different properties. Most importantly, you get different trust assumptions for the state commitment. In a classic blockchain, the trustworthiness of the state commitment hinges on the honest majority assumption. SNARK proofs trust assumptions inherit those of the proving system used<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>. Reexecution proofs would depend on the state commitment assumptions (e.g. merkle or verkle proofs). Fault proofs depend on the assumption that the evidence can reach the light client within the challenge period.</p>
+<p>This is one of the reasons I think about those mechanisms as arguments. They are arguments that convince light clients of the recent state. Hence, state commitment <em>arguments</em>.</p>
+<blockquote>
+<p>ℹ️ State Commitment Argument (or <strong>SCA</strong> for short) represents a claim about a recent state of the blockchain and all sufficient proofs that convince a particular light client.</p>
+<p>More precisely, it convinces a light client that the state transition function returned the claimed state commitment (e.g. merkle proof) for the given input (e.g. the block/batches and its parents).</p>
+<p>Important point: this concept acknowledges the underlying consensus security properties, but abstracts over them. It narrowly focuses on the state aspect.</p>
+</blockquote>
+<p>There are other reasons why it&rsquo;s useful to think about SCAs as separate notions.</p>
+<p>A blockchain system can deploy multiple SCAs at the same time. Ethereum being a classical blockchain already uses the classic state commitment argument in the block header (of the execution layer). Ethereum stateless client approach would essentially add re-execution validity proofs and verkle proofs. When that happens, clients that do not possess state will have two options to rely on: either on the SCA based on honest majority or on validity proof SCA. Once again, SCA based on re-execution validity proofs IMO are better arguments than an honest majority, since the assumptions are less strong.</p>
+<p>The used SCA is a property of a light client. In other words, different light clients in the same network can use different SCAs. To demonstrate this, consider <a href="https://vitalik.ca/general/2023/03/31/zkmulticlient.html">this writeup</a> by Vitalik where he is pondering how to preserve the multi-client philosophy in the SNARKified Ethereum future.</p>
+<blockquote>
+<p><strong>Open multi ZK-EVM</strong>: Different clients have different ZK-EVM implementations, and each client waits for a proof that is compatible with its own implementation before accepting a block as valid.</p>
+</blockquote>
+<p>Basically, two light clients both based on the same type of an argument (in this case SNARK validity proofs) still can have different implementations, which have the potential to disagree with each other.</p>
+<p>You can categorize SCAs by the main medium the argument relies on. Both stateless client and SNARK Ethereum L1 clients would circulate the proofs on the p2p layer, probably in their own subnets. This is in contrast to traditional blockchains where the state roots travel directly in block headers. It&rsquo;s possible to enshrine the validity proofs SCAs in blocks as well (Mina does that). It is also possible to do the same with fault proofs.</p>
+<p>Onchain light clients (aka bridges) are also convinced about the remote chain state by an SCA. In this case, the light client is passive: to convince the onchain light client about the new state, somebody has to submit a transaction to the chain it&rsquo;s hosted on. Often SCAs based on either fault or validity proofs are employed. In this framework multi-sigs are also an SCA: the trustworthiness of that argument hinges on the assumption that N-of-M are well-behaved, often without any penalties imposed for them in case they are not.</p>
+<p>SCAs are not something that is necessarily provided by the chain, i.e. enshrined. Sure, the state roots in blocks are enshrined, but in other cases, it&rsquo;s not necessary. To show that I have several examples:</p>
+<ol>
+<li>Anybody can build an end-user light client for Ethereum based on SNARK proofs. No protocol changes to Ethereum are required.</li>
+<li>Similarly, somebody can deploy an onchain light client of Ethereum based on fault proofs, and again no change on the Ethereum side is required.</li>
+<li>Finally, another team could present a competing Stateless Ethereum implementation based on other commitments.</li>
+</ol>
+<p>In all those cases, they all have to figure out how to incentivize the producers of those proofs, and it&rsquo;s an easy path just to assign validators to it, but I believe this is not an insurmountable issue.</p>
+<p>In summary:</p>
+<ol>
+<li>SCAs can have varying trust assumptions.</li>
+<li>SCAs can use different mediums: p2p, blocks, transactions.</li>
+<li>A light client can rely on 1 or more SCAs.</li>
+<li>SCAs can be enshrined or not.</li>
+</ol>
+<p>There are more angles you can view them with, e.g. bandwidth, costs, complexities, and limitations. But I will save them for a follow-up post.</p>
+<p>Now, let&rsquo;s examine how different scaling solutions fit into this framework.</p>
+<p><strong>Rollups</strong>. A rollup can be seen as a blockchain (per the definition above) that somehow piggybacks on another blockchain for its data availability (<a href="https://twitter.com/dankrad/status/1689634128101310464?s=20">per Dankrad</a> all L2 should use the L1&rsquo;s DA).</p>
+<p>The most basic rollup is what&rsquo;s called a pessimistic rollup. In order to access its state in a completely trustminimized manner, you gotta have to run a full node (or trust somebody who does).</p>
+<p>Then, you can extend it by adding a p2p SCA. Those can be based on the validity or fault proofs, or be as simple as &ldquo;N-of-M of my peers claimed this state is correct&rdquo;, and with this the rollup gains the ability to have end-user light clients and also more efficient syncing. I think this may qualify as a sovereign rollup.</p>
+<p>Finally, if a light client is added on some chain, then that allows for building bridges from the rollup to that chain. If that light client takes a cornerstone place in the rollup, (e.g it may add inputs in addition to the normal route, referred to as force inclusion) then maybe such a rollup can be called a classical rollup.</p>
+<p><strong>Sharding</strong>. Maybe some of you who are familiar with sharding constructions<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup> already noticed similarities between shards and rollups. Both of them are kind of blockchains and both of them have to use the data availability of the parent chain.</p>
+<p>The important difference is in the arrangement, it commonly has two parts:</p>
+<ol>
+<li>How validators learn about the shard state, and thus they are light clients of the shard<sup id="fnref:4"><a href="#fn:4" class="footnote-ref" role="doc-noteref">4</a></sup>. Typically, a validity proof based on re-execution is used to convince the validator of the state of the shard chain.</li>
+<li>How the main (/beacon/relay) chain learns about the shard state. The main chain is typically convinced by the signatures of validators.</li>
+</ol>
+<p>The different SCAs are the source of different tradeoffs between sharding and rollups. Theoretically, the former would have better latency but rollups may potentially achieve higher throughput. I may probably talk more about this in the following posts.</p>
+<p>To close it off I&rsquo;d say that not every combination of SCA and use-case would make sense. Each of them has tradeoffs on multiple axes. Validity proofs based on re-execution would make a bad onchain client. Fault proofs practically don&rsquo;t have throughput constraints, but have high latency due to the challenge periods.</p>
+<h3 id="conclusion">
+  Conclusion
+  <a href="#conclusion" class="h-anchor" aria-hidden="true">#</a>
+</h3>
+<p>Full nodes don&rsquo;t require any specific arguments, they always know the right state. The light clients don&rsquo;t possess the state and need to rely on third parties to provide them with that state. To be sure of the state the light clients need a convincing argument about the latest state, referred to as SCAs.</p>
+<p>All those mechanisms are needed to make various flavors of light clients possible. It may seem that light clients are something secondary. The simplest blockchains do not require any specific SCAs, but those blockchains have limited applicability: they can&rsquo;t convince outside entities about the state, and introducing light clients solves it.</p>
+<p>So in fact light clients are very much important, so that it&rsquo;s worth jumping through the hoops. Luckily, the toolkit of SCA is growing each day.</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>A fault proof can be realized via a SNARK that shows that the inputs do not correspond to the claimed output.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>e.g. things like the proper trusted setup assumption, discrete log hardness assumption, or that your hash function is collision-resistant.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p>I consider only Ethereum/Polkadot-like constructions. I admit that there may be other constructions that don&rsquo;t quite fit this mental model, in which case, I would be glad to hear about them.&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:4">
+<p>Validators can theoretically be full nodes of a validated shard. However, in reality, validators need to be reshuffled between the shards, and thus, need to essentially be light clients of the validated shard. A validator cannot be a full node of every shard because that defies the purpose of sharding in the first place.&#160;<a href="#fnref:4" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
+
+    </div>
+    
+      
+        <div class="pagination">
+          <div class="pagination__title">
+            <span class="pagination__title-h"
+              >Read other posts</span
+            >
+            <hr />
+          </div>
+          <div class="pagination__buttons">
+            
+            
+              <span class="button next">
+                <a href="/posts/parachains-consensus/">
+                  <span class="button__text">Parachains Consensus Explainer</span>
+                  <span class="button__icon">→</span>
+                </a>
+              </span>
+            
+          </div>
+        </div>
+      
+    
+
+    
+      
+        
+
+      
+    
+  </article>
+
+      </div>
+
+      
+        <footer class="footer">
+  <div class="footer__inner">
+    
+      <a
+  href="/"
+  class="logo"
+  style="text-decoration: none;"
+>
+  
+    <span class="logo__text"
+      >pepyakin</span
+    >
+  
+</a>
+
+      <div class="copyright">
+        <span>© 2023 Powered by <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a></span>
+        <span><a href="https://github.com/panr/hugo-theme-hello-friend" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+    
+  </div>
+</footer>
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+      
+    </div>
+
+    
+  </body>
+</html>

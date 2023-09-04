@@ -9,10 +9,30 @@
     <description>Recent content in Posts on pepyakin</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 07 Nov 2022 14:11:26 +0100</lastBuildDate>
+    <lastBuildDate>Mon, 04 Sep 2023 18:12:27 +0200</lastBuildDate>
     
 	<atom:link href="/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>It&#39;s all about light clients</title>
+      <link>/posts/sca-and-light-clients/</link>
+      <pubDate>Mon, 04 Sep 2023 18:12:27 +0200</pubDate>
+      
+      <guid>/posts/sca-and-light-clients/</guid>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          I discuss the notion of state commitment arguments and how they are used to build light clients.
+          
+        
+        </description>
+    </item>
     
     <item>
       <title>Parachains Consensus Explainer</title>

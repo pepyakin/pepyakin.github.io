@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>rollups on pepyakin</title>
+    <title>validity proofs on pepyakin</title>
     
     
     
-    <link>/tags/rollups/</link>
-    <description>Recent content in rollups on pepyakin</description>
+    <link>/tags/validity-proofs/</link>
+    <description>Recent content in validity proofs on pepyakin</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Mon, 04 Sep 2023 18:12:27 +0200</lastBuildDate>
     
-	<atom:link href="/tags/rollups/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="/tags/validity-proofs/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -29,26 +29,6 @@
         
         
           I discuss the notion of state commitment arguments and how they are used to build light clients.
-          
-        
-        </description>
-    </item>
-    
-    <item>
-      <title>Why Wasm is not the best format for Fraud Proofs</title>
-      <link>/posts/wasm-fraud-proofs/</link>
-      <pubDate>Thu, 01 Sep 2022 16:00:00 +0000</pubDate>
-      
-      <guid>/posts/wasm-fraud-proofs/</guid>
-      <description>
-        
-          
-          
-          
-        
-        
-        
-          In this article I&#39;ll dive into why Wasm isn&#39;t suited for interactive fraud proofs.
           
         
         </description>
