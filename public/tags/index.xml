@@ -2,19 +2,36 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on pepyakin</title>
+    
+    
+    
     <link>/tags/</link>
     <description>Recent content in Tags on pepyakin</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 07 Nov 2022 14:11:26 +0100</lastBuildDate><atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 07 Nov 2022 14:11:26 +0100</lastBuildDate>
+    
+	<atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    
     <item>
       <title>polkadot</title>
       <link>/tags/polkadot/</link>
       <pubDate>Mon, 07 Nov 2022 14:11:26 +0100</pubDate>
       
       <guid>/tags/polkadot/</guid>
-      <description></description>
-      <content></content>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          
+          
+        
+        </description>
     </item>
     
     <item>
@@ -23,8 +40,18 @@
       <pubDate>Thu, 01 Sep 2022 16:00:00 +0000</pubDate>
       
       <guid>/tags/fraud-proofs/</guid>
-      <description></description>
-      <content></content>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          
+          
+        
+        </description>
     </item>
     
     <item>
@@ -33,8 +60,18 @@
       <pubDate>Thu, 01 Sep 2022 16:00:00 +0000</pubDate>
       
       <guid>/tags/rollups/</guid>
-      <description></description>
-      <content></content>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          
+          
+        
+        </description>
     </item>
     
     <item>
@@ -43,8 +80,18 @@
       <pubDate>Thu, 01 Sep 2022 16:00:00 +0000</pubDate>
       
       <guid>/tags/wasm/</guid>
-      <description></description>
-      <content></content>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          
+          
+        
+        </description>
     </item>
     
   </channel>
