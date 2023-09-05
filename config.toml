@@ -19,6 +19,8 @@ paginate = 5
   # With this option you don't have to put the `cover` param in a front-matter.
   autoCover = true
 
+  showMenuItems = 1
+
   # set post to show the last updated
   # If you use git, you can set `enableGitInfo` to `true` and then post will automatically get the last updated
   showLastUpdated = true
@@ -70,3 +72,8 @@ paginate = 5
     [languages.en.params.logo]
       logoText = "pepyakin"
       logoHomeLink = "/"
+
+    [[languages.en.menu.main]]
+      identifier = "twitter"
+      name = "twitter"
+      url = "https://x.com/pepyakin"
