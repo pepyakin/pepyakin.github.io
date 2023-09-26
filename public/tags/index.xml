@@ -9,10 +9,30 @@
     <description>Recent content in Tags on pepyakin</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 04 Sep 2023 18:12:27 +0200</lastBuildDate>
+    <lastBuildDate>Mon, 25 Sep 2023 16:16:22 +0200</lastBuildDate>
     
 	<atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>polkadot</title>
+      <link>/tags/polkadot/</link>
+      <pubDate>Mon, 25 Sep 2023 16:16:22 +0200</pubDate>
+      
+      <guid>/tags/polkadot/</guid>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          
+          
+        
+        </description>
+    </item>
     
     <item>
       <title>fraud proofs</title>
@@ -100,26 +120,6 @@
       <pubDate>Mon, 04 Sep 2023 18:12:27 +0200</pubDate>
       
       <guid>/tags/validity-proofs/</guid>
-      <description>
-        
-          
-          
-          
-        
-        
-        
-          
-          
-        
-        </description>
-    </item>
-    
-    <item>
-      <title>polkadot</title>
-      <link>/tags/polkadot/</link>
-      <pubDate>Mon, 07 Nov 2022 14:11:26 +0100</pubDate>
-      
-      <guid>/tags/polkadot/</guid>
       <description>
         
           

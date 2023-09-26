@@ -2,6 +2,21 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>/</loc>
+    <lastmod>2023-09-25T16:16:22+02:00</lastmod>
+  </url><url>
+    <loc>/tags/polkadot/</loc>
+    <lastmod>2023-09-25T16:16:22+02:00</lastmod>
+  </url><url>
+    <loc>/posts/</loc>
+    <lastmod>2023-09-25T16:16:22+02:00</lastmod>
+  </url><url>
+    <loc>/posts/archive-nodes/</loc>
+    <lastmod>2023-09-25T16:16:22+02:00</lastmod>
+  </url><url>
+    <loc>/tags/</loc>
+    <lastmod>2023-09-25T16:16:22+02:00</lastmod>
+  </url><url>
     <loc>/tags/fraud-proofs/</loc>
     <lastmod>2023-09-04T18:12:27+02:00</lastmod>
   </url><url>
@@ -11,28 +26,16 @@
     <loc>/tags/light-clients/</loc>
     <lastmod>2023-09-04T18:12:27+02:00</lastmod>
   </url><url>
-    <loc>/</loc>
-    <lastmod>2023-09-04T18:12:27+02:00</lastmod>
-  </url><url>
-    <loc>/posts/</loc>
-    <lastmod>2023-09-04T18:12:27+02:00</lastmod>
-  </url><url>
     <loc>/tags/rollups/</loc>
     <lastmod>2023-09-04T18:12:27+02:00</lastmod>
   </url><url>
     <loc>/tags/sharding/</loc>
     <lastmod>2023-09-04T18:12:27+02:00</lastmod>
   </url><url>
-    <loc>/tags/</loc>
-    <lastmod>2023-09-04T18:12:27+02:00</lastmod>
-  </url><url>
     <loc>/tags/validity-proofs/</loc>
     <lastmod>2023-09-04T18:12:27+02:00</lastmod>
   </url><url>
     <loc>/posts/parachains-consensus/</loc>
-    <lastmod>2022-11-07T14:11:26+01:00</lastmod>
-  </url><url>
-    <loc>/tags/polkadot/</loc>
     <lastmod>2022-11-07T14:11:26+01:00</lastmod>
   </url><url>
     <loc>/tags/wasm/</loc>
