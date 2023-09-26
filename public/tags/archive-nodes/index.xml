@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>archive nodes on pepyakin</title>
+    
+    
+    
+    <link>/tags/archive-nodes/</link>
+    <description>Recent content in archive nodes on pepyakin</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 25 Sep 2023 16:16:22 +0200</lastBuildDate>
+    
+	<atom:link href="/tags/archive-nodes/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Rethinking historical storage</title>
+      <link>/posts/archive-nodes/</link>
+      <pubDate>Mon, 25 Sep 2023 16:16:22 +0200</pubDate>
+      
+      <guid>/posts/archive-nodes/</guid>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          A proposal for more efficient archive nodes.
+          
+        
+        </description>
+    </item>
+    
+  </channel>
+</rss>
