@@ -11,6 +11,8 @@ readingTime = true
 hideComments = false
 +++
 
+Feel free to reply on [twitter](https://twitter.com/pepyakin/status/1706696616139182374) and [polkadot forum](https://forum.polkadot.network/t/rethinking-historical-storage/4059).
+
 ## Intro
 
 In a multichain environment like Polkadot, you often need to query the RPC of all involved L2s. This often entails syncing around 60 nodes — a tedious task.
